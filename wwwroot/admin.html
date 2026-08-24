@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Admin Dashboard — Mnce Tpain</title>
+<link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="dash-body">
+
+<div class="login-shell" id="login-shell">
+  <div class="login-card">
+    <div class="brand-badge" aria-label="Mnce Tpain logo">
+      <span class="brand-mark__top">MNCE</span>
+      <span class="brand-mark__mid">TPAIN</span>
+      <span class="brand-mark__sub">M.N. FAST FOOD</span>
+    </div>
+    <h1>Admin Dashboard</h1>
+    <p>Manager PIN required.</p>
+    <input type="password" inputmode="numeric" maxlength="10" class="pin-input" id="pin-input" placeholder="••••" />
+    <div class="login-error" id="login-error"></div>
+    <button class="btn btn-primary btn-block" id="login-btn">Unlock dashboard</button>
+  </div>
+</div>
+
+<div id="dashboard" style="display:none;">
+  <div class="dash-topbar">
+    <h1>🔥 Admin Dashboard</h1>
+    <div class="spacer" style="flex:1;"></div>
+    <span class="status-pill" id="live-pill"><span class="status-pill__dot"></span> connecting…</span>
+    <span class="muted" id="staff-name" style="font-size:12px; margin-left:14px;"></span>
+    <a href="kitchen.html" class="btn btn-ghost" style="margin-left:10px; padding:6px 12px; font-size:12px; text-decoration:none;">Kitchen board</a>
+    <button class="btn btn-ghost" id="logout-btn" style="margin-left:10px; padding:6px 12px; font-size:12px;">Log out</button>
+  </div>
+
+  <div class="stat-row">
+    <div class="stat-card"><div class="stat-card__label">Orders today</div><div class="stat-card__value" id="stat-orders">—</div></div>
+    <div class="stat-card"><div class="stat-card__label">Revenue today</div><div class="stat-card__value" id="stat-revenue">—</div></div>
+    <div class="stat-card"><div class="stat-card__label">In progress</div><div class="stat-card__value" id="stat-active">—</div></div>
+    <div class="stat-card"><div class="stat-card__label">Completed today</div><div class="stat-card__value" id="stat-completed">—</div></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel__head">
+      <h2>Top sellers today</h2>
+    </div>
+    <table>
+      <thead><tr><th>Item</th><th>Qty sold</th><th>Revenue</th></tr></thead>
+      <tbody id="top-items-body"><tr><td colspan="3" class="muted">Loading…</td></tr></tbody>
+    </table>
+  </div>
+
+  <div class="panel">
+    <div class="panel__head"><h2>Customer calls and order issues</h2><button class="btn btn-primary" id="refresh-calls-btn" style="padding:6px 12px; font-size:12.5px;">Refresh</button></div>
+    <table><thead><tr><th>Customer</th><th>Type</th><th>Issue</th><th>Status</th><th>Received</th><th></th></tr></thead><tbody id="calls-body"><tr><td colspan="6" class="muted">Loading…</td></tr></tbody></table>
+  </div>
+
+  <div class="panel">
+    <div class="panel__head">
+      <h2>Recent orders</h2>
+      <select id="order-filter" style="background:var(--coal); color:var(--cream); border:1px solid var(--line); border-radius:6px; padding:6px 10px; font-size:12.5px;">
+        <option value="">All statuses</option>
+        <option value="AwaitingPayment">Awaiting payment</option>
+        <option value="Pending">Pending</option>
+        <option value="Preparing">Preparing</option>
+        <option value="Ready">Ready</option>
+        <option value="Completed">Completed</option>
+        <option value="Cancelled">Cancelled</option>
+      </select>
+    </div>
+    <table>
+      <thead><tr><th>Order #</th><th>Customer</th><th>Channel</th><th>Items</th><th>Total</th><th>Payment</th><th>Status</th><th>Placed</th></tr></thead>
+      <tbody id="orders-body"><tr><td colspan="8" class="muted">Loading…</td></tr></tbody>
+    </table>
+  </div>
+
+  <div class="panel">
+    <div class="panel__head">
+      <h2>Menu management</h2>
+      <button class="btn btn-primary" id="add-item-btn" style="padding:6px 12px; font-size:12.5px;">+ Add item</button>
+    </div>
+    <table>
+      <thead><tr><th>Category</th><th>Item</th><th>Serving</th><th>Price</th><th>Status</th><th></th></tr></thead>
+      <tbody id="menu-body"><tr><td colspan="6" class="muted">Loading…</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="sheet-backdrop" id="item-backdrop"></div>
+<div class="sheet" id="item-sheet" style="display:none; max-width:420px;">
+  <button class="sheet-close" id="item-close">✕</button>
+  <h2 id="item-sheet-title">Add menu item</h2>
+
+  <input type="hidden" id="item-id" />
+
+  <div class="field">
+    <label>Category</label>
+    <select id="item-category"></select>
+  </div>
+  <div class="field">
+    <label>Name</label>
+    <input type="text" id="item-name" placeholder="e.g. Pap & Beef" />
+  </div>
+  <div class="field">
+    <label>Serving info (optional)</label>
+    <input type="text" id="item-serving" placeholder="e.g. Serves 2" />
+  </div>
+  <div class="field">
+    <label>Price (R)</label>
+    <input type="number" step="0.01" min="0" id="item-price" placeholder="0.00" />
+  </div>
+  <div class="field">
+    <label>Description (optional)</label>
+    <textarea id="item-description" placeholder="Shown to customers on the order page"></textarea>
+  </div>
+  <div class="field">
+    <label>Food image URL (optional)</label>
+    <input type="url" id="item-image-url" placeholder="https://.../your-dish.jpg" />
+  </div>
+  <div class="field">
+    <label style="display:flex; align-items:center; gap:8px; text-transform:none; letter-spacing:0;">
+      <input type="checkbox" id="item-available" checked style="width:auto;" /> Available on the menu
+    </label>
+  </div>
+
+  <div class="login-error" id="item-error"></div>
+
+  <button class="btn btn-primary btn-block" id="item-save">Save item</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@microsoft/signalr@8.0.0/dist/browser/signalr.min.js"></script>
+<script src="js/api.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>

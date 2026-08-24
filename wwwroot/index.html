@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Mnce Tpain — Order Online</title>
+<link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+<header class="brandbar">
+  <div class="brand-mark" aria-label="Mnce Tpain logo">
+    <span class="brand-mark__top">MNCE</span>
+    <span class="brand-mark__mid">TPAIN</span>
+    <span class="brand-mark__sub">M.N. FAST FOOD</span>
+  </div>
+  <div class="brand-text">
+    <h1>MNCE TPAIN</h1>
+    <p>M.N. FAST FOOD</p>
+  </div>
+  <div class="spacer"></div>
+  <button class="btn btn-ghost" id="open-support" style="font-size:11px; padding:7px 10px;">Need help?</button>
+  <a href="kitchen.html" class="muted" style="font-size:11px; text-decoration:none;">Staff →</a>
+</header>
+
+<main class="shell" id="menu-root">
+  <section class="menu-hero" aria-label="Mnce Tpain signature fire-grilled menu">
+    <div><span class="menu-hero__eyebrow">Durban Mai Mai</span><h2>Fire, smoke, and flavour.</h2><p>Choose your plate. We will handle the flame.</p></div>
+  </section>
+  <div id="menu-content"><div class="empty-state" id="menu-loading">Firing up the menu…</div></div>
+</main>
+
+<!-- Sticky cart bar -->
+<div class="cart-bar" id="cart-bar">
+  <div class="cart-bar__inner">
+    <div>
+      <div class="cart-bar__count" id="cart-count">0 items</div>
+      <div class="cart-bar__total" id="cart-total">R0.00</div>
+    </div>
+    <button class="btn btn-primary" id="open-checkout">View order</button>
+  </div>
+</div>
+
+<div class="sheet-backdrop" id="support-backdrop"></div>
+<div class="sheet" id="support-sheet" style="display:none;">
+  <button class="sheet-close" id="support-close">✕</button>
+  <h2>Contact the shop</h2>
+  <div class="field"><label>Your name</label><input id="support-name" type="text" /></div>
+  <div class="field"><label>Phone number</label><input id="support-phone" type="tel" /></div>
+  <div class="field"><label>What do you need?</label><select id="support-type"><option>Order issue</option><option>Order call-back</option><option>Payment question</option><option>General question</option></select></div>
+  <div class="field"><label>Message</label><textarea id="support-description" placeholder="Tell the team how we can help"></textarea></div>
+  <div class="login-error" id="support-error"></div>
+  <button class="btn btn-primary btn-block" id="support-submit">Send to the shop</button>
+</div>
+
+<!-- Checkout sheet -->
+<div class="sheet-backdrop" id="checkout-backdrop"></div>
+<div class="sheet" id="checkout-sheet" style="display:none;">
+  <button class="sheet-close" id="checkout-close">✕</button>
+  <h2>Your order</h2>
+
+  <div id="checkout-items"></div>
+
+  <div class="section-badge" style="margin-top:18px;">Details</div>
+
+  <div class="field">
+    <label>How would you like it?</label>
+    <div class="channel-toggle">
+      <button type="button" data-channel="Collection" class="is-active">Collection</button>
+      <button type="button" data-channel="Delivery">Delivery</button>
+      <button type="button" data-channel="DineIn">Dine-in</button>
+    </div>
+  </div>
+
+  <div class="field">
+    <label>Your name</label>
+    <input type="text" id="cust-name" placeholder="e.g. Sipho Ndlovu" />
+  </div>
+
+  <div class="field">
+    <label>Phone number</label>
+    <input type="tel" id="cust-phone" placeholder="e.g. 0691234567" />
+  </div>
+
+  <div class="field">
+    <label>Email address</label>
+    <input type="email" id="cust-email" placeholder="e.g. sipho@example.com" />
+  </div>
+
+  <div class="field" id="address-field" style="display:none;">
+    <label>Delivery address</label>
+    <textarea id="cust-address" placeholder="Street, area, and any landmark"></textarea>
+  </div>
+
+  <div class="field">
+    <label>Notes for the kitchen (optional)</label>
+    <textarea id="cust-notes" placeholder="e.g. extra chilli sauce, no onions…"></textarea>
+  </div>
+
+  <div id="checkout-error" class="login-error"></div>
+
+  <button class="btn btn-primary btn-block" id="submit-order">Continue to payment — <span id="submit-total">R0.00</span></button>
+</div>
+
+<!-- Payment sheet -->
+<div class="sheet-backdrop" id="payment-backdrop"></div>
+<div class="sheet" id="payment-sheet" style="display:none;">
+  <button class="sheet-close" id="payment-close">✕</button>
+  <h2>Payment</h2>
+  <div class="order-chip"><span class="muted">Order</span><strong id="payment-order-number">—</strong></div>
+  <div id="payment-price-lines"></div>
+  <div class="pay-method-row">
+    <button type="button" data-method="Card" class="is-active">💳 Card</button>
+    <button type="button" data-method="CashOnCollection">💵 Cash on collection</button>
+  </div>
+  <div id="card-fields">
+    <div class="field"><label>Card number</label><input type="text" id="card-number" inputmode="numeric" placeholder="1234 5678 9012 3456" maxlength="23" /></div>
+    <div class="field"><label>Cardholder name</label><input type="text" id="card-name" placeholder="As printed on the card" /></div>
+    <div class="card-input-row">
+      <div class="field"><label>Month</label><input type="text" id="card-month" inputmode="numeric" placeholder="MM" maxlength="2" /></div>
+      <div class="field"><label>Year</label><input type="text" id="card-year" inputmode="numeric" placeholder="YYYY" maxlength="4" /></div>
+      <div class="field"><label>CVV</label><input type="text" id="card-cvv" inputmode="numeric" placeholder="123" maxlength="4" /></div>
+    </div>
+  </div>
+  <div id="cash-note" class="muted" style="display:none; margin-bottom:14px;">Pay in cash when your order is collected.</div>
+  <div id="payment-error" class="login-error"></div>
+  <button class="btn btn-primary btn-block" id="submit-payment">Pay now — <span id="payment-total">R0.00</span></button>
+</div>
+
+<!-- Payment confirmation sheet -->
+<div class="sheet-backdrop" id="confirm-backdrop"></div>
+<div class="sheet" id="confirm-sheet" style="display:none;">
+  <h2>Payment successful ✅</h2>
+  <p class="muted">Your payment is recorded. Submit your order to send it to the kitchen.</p>
+  <div class="order-chip"><span class="muted">Order</span><strong id="confirm-order-number">—</strong></div>
+  <div id="confirm-items"></div>
+  <div id="confirm-error" class="login-error"></div>
+  <button class="btn btn-primary btn-block" id="submit-to-kitchen">🔥 Submit Order to Kitchen</button>
+</div>
+
+<!-- Order confirmation / tracking sheet -->
+<div class="sheet-backdrop" id="track-backdrop"></div>
+<div class="sheet" id="track-sheet" style="display:none;">
+  <h2>Order placed 🔥</h2>
+  <div class="order-chip">
+    <span class="muted">Order number</span>
+    <strong id="track-order-number">—</strong>
+  </div>
+
+  <div class="tracker" id="tracker">
+    <div class="tracker__fill" id="tracker-fill" style="width:0%"></div>
+    <div class="tracker__step" data-step="Pending"><div class="tracker__dot">📝</div><div class="tracker__label">Placed</div></div>
+    <div class="tracker__step" data-step="Preparing"><div class="tracker__dot">🔥</div><div class="tracker__label">Preparing</div></div>
+    <div class="tracker__step" data-step="Ready"><div class="tracker__dot">🍽️</div><div class="tracker__label">Ready</div></div>
+    <div class="tracker__step" data-step="Completed"><div class="tracker__dot">✅</div><div class="tracker__label">Done</div></div>
+  </div>
+
+  <p class="muted" id="track-message" style="margin-top:18px; text-align:center;">We've got your order — the fire's already going.</p>
+  <p class="loyalty-note" id="track-loyalty"></p>
+
+  <button class="btn btn-ghost btn-block" id="track-new-order" style="margin-top:16px;">Place another order</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@microsoft/signalr@8.0.0/dist/browser/signalr.min.js"></script>
+<script src="js/api.js"></script>
+<script src="js/order.js"></script>
+</body>
+</html>

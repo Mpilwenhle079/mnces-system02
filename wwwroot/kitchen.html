@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Kitchen Board — Mnce Tpain</title>
+<link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="dash-body">
+
+<!-- Login gate -->
+<div class="login-shell" id="login-shell">
+  <div class="login-card">
+    <div class="brand-badge" aria-label="Mnce Tpain logo">
+      <span class="brand-mark__top">MNCE</span>
+      <span class="brand-mark__mid">TPAIN</span>
+      <span class="brand-mark__sub">M.N. FAST FOOD</span>
+    </div>
+    <h1>Kitchen Board</h1>
+    <p>Enter your staff PIN to see live orders.</p>
+    <input type="password" inputmode="numeric" maxlength="10" class="pin-input" id="pin-input" placeholder="••••" />
+    <div class="login-error" id="login-error"></div>
+    <button class="btn btn-primary btn-block" id="login-btn">Unlock board</button>
+  </div>
+</div>
+
+<!-- Dashboard -->
+<div id="dashboard" style="display:none;">
+  <div class="dash-topbar">
+    <h1>🔥 Kitchen Board</h1>
+    <div class="spacer" style="flex:1;"></div>
+    <span class="status-pill" id="live-pill"><span class="status-pill__dot"></span> connecting…</span>
+    <span class="muted" id="staff-name" style="font-size:12px; margin-left:14px;"></span>
+    <button type="button" id="admin-btn" class="btn btn-ghost" style="margin-left:10px; padding:6px 12px; font-size:12px;">Admin dashboard</button>
+    <button class="btn btn-ghost" id="logout-btn" style="margin-left:10px; padding:6px 12px; font-size:12px;">Log out</button>
+  </div>
+
+  <div class="board">
+    <div class="board-col" data-status="Pending">
+      <div class="board-col__head"><span>NEW</span><span class="board-col__count" id="count-pending">0</span></div>
+      <div id="col-pending"></div>
+    </div>
+    <div class="board-col" data-status="Preparing">
+      <div class="board-col__head"><span>ON THE FIRE</span><span class="board-col__count" id="count-preparing">0</span></div>
+      <div id="col-preparing"></div>
+    </div>
+    <div class="board-col" data-status="Ready">
+      <div class="board-col__head"><span>READY</span><span class="board-col__count" id="count-ready">0</span></div>
+      <div id="col-ready"></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@microsoft/signalr@8.0.0/dist/browser/signalr.min.js"></script>
+<script src="js/api.js"></script>
+<script src="js/kitchen.js"></script>
+</body>
+</html>
