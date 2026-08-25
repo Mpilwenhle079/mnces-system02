@@ -128,7 +128,7 @@
           </ul>
         </td>
         <td>${money(order.totalAmount)}</td>
-        <td><span class="badge ${order.paymentStatus === 'Paid' ? 'ready' : 'cancelled'}">${order.paymentStatus || 'Unknown'}</span></td>
+        <td><span class="badge ${order.paymentStatus === 'Succeeded' ? 'ready' : 'cancelled'}">${order.paymentStatus || 'Unpaid'}</span></td>
         <td><span class="badge ${statusClass(order.status)}">${order.status}</span></td>
         <td>${new Date(order.createdAt).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}</td>
       </tr>

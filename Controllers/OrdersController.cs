@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Cryptography;
+using System.Text;
 using MnceShisanyama.Api.Data;
 using MnceShisanyama.Api.DTOs;
 using MnceShisanyama.Api.Filters;
@@ -14,11 +16,13 @@ public class OrdersController : ControllerBase
 {
     private readonly AppDbContext _db;
     private readonly OrderNotifier _notifier;
+    private readonly ISmsSender _smsSender;
 
-    public OrdersController(AppDbContext db, OrderNotifier notifier)
+    public OrdersController(AppDbContext db, OrderNotifier notifier, ISmsSender smsSender)
     {
         _db = db;
         _notifier = notifier;
+        _smsSender = smsSender;
     }
 
     /// <summary>
@@ -116,9 +120,60 @@ public class OrdersController : ControllerBase
         var order = await _db.Orders
             .Include(o => o.Customer)
             .Include(o => o.Items)
+            .Include(o => o.Payment)
             .FirstOrDefaultAsync(o => o.Id == id);
 
         if (order is null) return NotFound();
+        return Ok(ToResponse(order, order.Customer!));
+    }
+
+    [HttpPost("track")]
+    public async Task<ActionResult<OrderResponse>> Track([FromBody] TrackOrderRequest request)
+    {
+        var order = await _db.Orders
+            .Include(o => o.Customer).Include(o => o.Items).Include(o => o.Payment)
+            .FirstOrDefaultAsync(o => o.OrderNumber == request.OrderNumber && o.Customer!.Phone == request.Phone);
+
+        return order is null
+            ? NotFound(new { message = "We couldn't find an order with those details." })
+            : Ok(ToResponse(order, order.Customer!));
+    }
+
+    [HttpPost("{id:int}/pickup-code")]
+    public async Task<IActionResult> SendPickupCode(int id, [FromBody] TrackOrderRequest request)
+    {
+        var order = await _db.Orders.Include(o => o.Customer).FirstOrDefaultAsync(o => o.Id == id);
+        if (order is null || order.OrderNumber != request.OrderNumber || order.Customer!.Phone != request.Phone)
+            return NotFound(new { message = "We couldn't verify this order." });
+        if (order.Status != OrderStatus.Ready)
+            return BadRequest(new { message = "A pickup code is sent when the order is marked Ready." });
+        if (order.PickupCodeSentAt is not null && order.PickupCodeSentAt > DateTime.UtcNow.AddSeconds(-60))
+            return BadRequest(new { message = "Please wait a minute before requesting another code." });
+
+        var code = RandomNumberGenerator.GetInt32(100000, 1000000).ToString();
+        order.PickupCodeHash = HashCode(code);
+        order.PickupCodeSentAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync();
+        await _smsSender.SendPickupCodeAsync(order.Customer.Phone, order.OrderNumber, code);
+
+        return Ok(new { message = "Pickup code sent by SMS.", demoCode = code });
+    }
+
+    [HttpPost("{id:int}/verify-pickup")]
+    public async Task<ActionResult<OrderResponse>> VerifyPickup(int id, [FromBody] VerifyPickupRequest request)
+    {
+        var order = await _db.Orders
+            .Include(o => o.Customer).Include(o => o.Items).Include(o => o.Payment)
+            .FirstOrDefaultAsync(o => o.Id == id && o.Customer!.Phone == request.Phone);
+        if (order is null) return NotFound(new { message = "We couldn't verify this order." });
+        if (order.Status != OrderStatus.Ready) return BadRequest(new { message = "This order is not ready for pickup yet." });
+        if (order.PickupCodeHash is null || order.PickupCodeSentAt < DateTime.UtcNow.AddMinutes(-10) ||
+            !CryptographicOperations.FixedTimeEquals(Convert.FromHexString(order.PickupCodeHash), Encoding.UTF8.GetBytes(HashCode(request.Code))))
+            return BadRequest(new { message = "That pickup code is invalid or expired." });
+
+        order.PickupVerifiedAt = DateTime.UtcNow;
+        order.PickupCodeHash = null;
+        await _db.SaveChangesAsync();
         return Ok(ToResponse(order, order.Customer!));
     }
 
@@ -171,6 +226,7 @@ public class OrdersController : ControllerBase
         var query = _db.Orders
             .Include(o => o.Customer)
             .Include(o => o.Items)
+            .Include(o => o.Payment)
             .Where(o => o.Status != OrderStatus.AwaitingPayment && o.Status != OrderStatus.PaymentConfirmed)
             .AsQueryable();
 
@@ -199,6 +255,8 @@ public class OrdersController : ControllerBase
         if (order is null) return NotFound();
         if (order.Status is OrderStatus.AwaitingPayment or OrderStatus.PaymentConfirmed)
             return BadRequest(new { message = "This order hasn't been submitted to the kitchen yet." });
+        if (request.Status == OrderStatus.Completed && order.PickupVerifiedAt is null)
+            return BadRequest(new { message = "Verify the customer's pickup SMS code before completing this order." });
 
         order.Status = request.Status;
         order.UpdatedAt = DateTime.UtcNow;
@@ -227,6 +285,10 @@ public class OrdersController : ControllerBase
         order.UpdatedAt,
         order.Items.Select(i => new OrderItemResponse(
             i.Id, i.MenuItemId, i.ItemNameSnapshot, i.UnitPrice, i.Quantity, i.LineTotal, i.SpecialInstructions
-        )).ToList()
+        )).ToList(),
+        order.Payment?.Status,
+        order.Payment?.Method
     );
+
+    private static string HashCode(string code) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(code)));
 }

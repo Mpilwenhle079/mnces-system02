@@ -101,12 +101,14 @@
             ${status === 'Pending' ? '<button class="btn btn-primary" data-next="Preparing">Start</button>' : ''}
             ${status === 'Preparing' ? '<button class="btn btn-primary" data-next="Ready">Ready</button>' : ''}
             ${status === 'Ready' ? '<button class="btn btn-primary" data-next="Completed">Complete</button>' : ''}
+            <button class="btn btn-ghost" data-next="Cancelled">Cancel</button>
           </div>
         `;
 
         const btn = card.querySelector('[data-next]');
         if (btn) {
           btn.addEventListener('click', async () => {
+            if (btn.dataset.next === 'Cancelled' && !window.confirm('Cancel this order?')) return;
             try {
               await Api.put(`/api/orders/${order.id}/status`, { status: btn.dataset.next }, { staff: true });
               await refreshOrders();

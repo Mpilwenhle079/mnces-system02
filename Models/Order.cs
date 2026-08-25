@@ -43,5 +43,10 @@ public class Order
     /// </summary>
     public bool UsedLoyaltyReward { get; set; }
 
+    [MaxLength(128)]
+    public string? PickupCodeHash { get; set; }
+    public DateTime? PickupCodeSentAt { get; set; }
+    public DateTime? PickupVerifiedAt { get; set; }
+
     public ICollection<OrderItem> Items { get; set; } = new List<OrderItem>();
 }

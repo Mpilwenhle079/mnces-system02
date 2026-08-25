@@ -34,6 +34,7 @@ builder.Services.AddSignalR();
 builder.Services.AddSingleton<StaffAuthService>();
 builder.Services.AddScoped<OrderNotifier>();
 builder.Services.AddScoped<IPaymentGateway, DemoPaymentGateway>();
+builder.Services.AddScoped<ISmsSender, DemoSmsSender>();
 
 // Frontend is plain HTML/CSS/JS served from wwwroot on the same origin as the API,
 // so no CORS policy is required for the bundled pages. This policy exists for teams

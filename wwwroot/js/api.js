@@ -28,12 +28,24 @@ const Api = (() => {
     try { data = await res.json(); } catch { /* no body */ }
 
     if (!res.ok) {
-      const message = (data && data.message) || `Request failed (${res.status})`;
+      const message = extractErrorMessage(data, res.status);
       const err = new Error(message);
       err.status = res.status;
       throw err;
     }
     return data;
+  }
+
+  function extractErrorMessage(data, status) {
+    if (!data) return `Request failed (${status})`;
+    if (data.message) return data.message;
+    if (data.errors && typeof data.errors === 'object') {
+      const firstField = Object.keys(data.errors)[0];
+      const firstMessage = firstField && data.errors[firstField] && data.errors[firstField][0];
+      if (firstMessage) return firstMessage;
+    }
+    if (data.title) return data.title;
+    return `Request failed (${status})`;
   }
 
   return {

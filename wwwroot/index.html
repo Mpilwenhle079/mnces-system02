@@ -25,7 +25,12 @@
 
 <main class="shell" id="menu-root">
   <section class="menu-hero" aria-label="Mnce Tpain signature fire-grilled menu">
-    <div><span class="menu-hero__eyebrow">Durban Mai Mai</span><h2>Fire, smoke, and flavour.</h2><p>Choose your plate. We will handle the flame.</p></div>
+    <div class="menu-hero__copy"><span class="menu-hero__eyebrow">Durban Mai Mai</span><h2>Fire, smoke, and flavour.</h2><p>Choose your plate. We will handle the flame.</p><div class="service-tags"><span>Collection</span><span>Dine-in</span><span>Delivery</span></div></div>
+  </section>
+  <section class="menu-tools" aria-label="Find a menu item">
+    <div class="menu-tools__top"><div><span class="menu-hero__eyebrow">Today's menu</span><h2>Pick your plate</h2></div><span class="menu-tools__status">Fresh from the grill</span></div>
+    <label class="search-field"><span aria-hidden="true">⌕</span><input id="menu-search" type="search" placeholder="Search plates, wings, wors..." autocomplete="off" /><button type="button" id="clear-menu-search" aria-label="Clear search">×</button></label>
+    <div class="category-tabs" id="category-tabs" role="tablist" aria-label="Menu categories"></div>
   </section>
   <div id="menu-content"><div class="empty-state" id="menu-loading">Firing up the menu…</div></div>
 </main>
@@ -55,9 +60,16 @@
 
 <!-- Checkout sheet -->
 <div class="sheet-backdrop" id="checkout-backdrop"></div>
-<div class="sheet" id="checkout-sheet" style="display:none;">
+<div class="sheet sheet--scroll" id="checkout-sheet" style="display:none;">
   <button class="sheet-close" id="checkout-close">✕</button>
-  <h2>Your order</h2>
+  <div class="sheet__header">
+    <div class="brand-badge brand-badge--small" aria-hidden="true">
+      <span class="brand-mark__top">MNCE</span>
+      <span class="brand-mark__mid">TPAIN</span>
+      <span class="brand-mark__sub">M.N. FAST FOOD</span>
+    </div>
+    <h2>Your order</h2>
+  </div>
 
   <div id="checkout-items"></div>
 
@@ -99,14 +111,23 @@
 
   <div id="checkout-error" class="login-error"></div>
 
-  <button class="btn btn-primary btn-block" id="submit-order">Continue to payment — <span id="submit-total">R0.00</span></button>
+  <div class="sheet__footer">
+    <button class="btn btn-primary btn-block" id="submit-order">Continue to payment — <span id="submit-total">R0.00</span></button>
+  </div>
 </div>
 
 <!-- Payment sheet -->
 <div class="sheet-backdrop" id="payment-backdrop"></div>
-<div class="sheet" id="payment-sheet" style="display:none;">
+<div class="sheet sheet--scroll" id="payment-sheet" style="display:none;">
   <button class="sheet-close" id="payment-close">✕</button>
-  <h2>Payment</h2>
+  <div class="sheet__header">
+    <div class="brand-badge brand-badge--small" aria-hidden="true">
+      <span class="brand-mark__top">MNCE</span>
+      <span class="brand-mark__mid">TPAIN</span>
+      <span class="brand-mark__sub">M.N. FAST FOOD</span>
+    </div>
+    <h2>Payment</h2>
+  </div>
   <div class="order-chip"><span class="muted">Order</span><strong id="payment-order-number">—</strong></div>
   <div id="payment-price-lines"></div>
   <div class="pay-method-row">
@@ -124,18 +145,9 @@
   </div>
   <div id="cash-note" class="muted" style="display:none; margin-bottom:14px;">Pay in cash when your order is collected.</div>
   <div id="payment-error" class="login-error"></div>
-  <button class="btn btn-primary btn-block" id="submit-payment">Pay now — <span id="payment-total">R0.00</span></button>
-</div>
-
-<!-- Payment confirmation sheet -->
-<div class="sheet-backdrop" id="confirm-backdrop"></div>
-<div class="sheet" id="confirm-sheet" style="display:none;">
-  <h2>Payment successful ✅</h2>
-  <p class="muted">Your payment is recorded. Submit your order to send it to the kitchen.</p>
-  <div class="order-chip"><span class="muted">Order</span><strong id="confirm-order-number">—</strong></div>
-  <div id="confirm-items"></div>
-  <div id="confirm-error" class="login-error"></div>
-  <button class="btn btn-primary btn-block" id="submit-to-kitchen">🔥 Submit Order to Kitchen</button>
+  <div class="sheet__footer">
+    <button class="btn btn-primary btn-block" id="submit-payment">Pay now — <span id="payment-total">R0.00</span></button>
+  </div>
 </div>
 
 <!-- Order confirmation / tracking sheet -->

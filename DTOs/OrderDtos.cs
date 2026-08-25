@@ -68,11 +68,25 @@ public record OrderResponse(
     decimal TotalAmount,
     DateTime CreatedAt,
     DateTime UpdatedAt,
-    List<OrderItemResponse> Items
+    List<OrderItemResponse> Items,
+    PaymentStatus? PaymentStatus,
+    PaymentMethod? PaymentMethod
 );
 
 public class UpdateOrderStatusRequest
 {
     [Required]
     public OrderStatus Status { get; set; }
+}
+
+public class TrackOrderRequest
+{
+    [Required, MaxLength(30)] public string OrderNumber { get; set; } = string.Empty;
+    [Required, MaxLength(30)] public string Phone { get; set; } = string.Empty;
+}
+
+public class VerifyPickupRequest
+{
+    [Required, MaxLength(30)] public string Phone { get; set; } = string.Empty;
+    [Required, StringLength(6, MinimumLength = 6)] public string Code { get; set; } = string.Empty;
 }

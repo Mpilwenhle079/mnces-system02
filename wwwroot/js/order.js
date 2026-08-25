@@ -7,6 +7,8 @@
   let channel = 'Collection';
   let trackedOrderId = null;
   let hubConnection = null;
+  let activeCategory = 'All';
+  let menuSearch = '';
   const categoryImages = {
     plates: 'https://images.unsplash.com/photo-1559847844-5315695dadae?auto=format&fit=crop&w=1200&q=82',
     platters: 'https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=1200&q=82'
@@ -30,6 +32,9 @@
 
   const el = {
     root: document.getElementById('menu-content'),
+    menuSearch: document.getElementById('menu-search'),
+    clearMenuSearch: document.getElementById('clear-menu-search'),
+    categoryTabs: document.getElementById('category-tabs'),
     cartBar: document.getElementById('cart-bar'),
     cartCount: document.getElementById('cart-count'),
     cartTotal: document.getElementById('cart-total'),
@@ -57,12 +62,6 @@
     paymentError: document.getElementById('payment-error'),
     paymentTotal: document.getElementById('payment-total'),
     submitPayment: document.getElementById('submit-payment'),
-    confirmBackdrop: document.getElementById('confirm-backdrop'),
-    confirmSheet: document.getElementById('confirm-sheet'),
-    confirmOrderNumber: document.getElementById('confirm-order-number'),
-    confirmItems: document.getElementById('confirm-items'),
-    confirmError: document.getElementById('confirm-error'),
-    submitToKitchen: document.getElementById('submit-to-kitchen'),
     trackBackdrop: document.getElementById('track-backdrop'),
     trackSheet: document.getElementById('track-sheet'),
     trackOrderNumber: document.getElementById('track-order-number'),
@@ -91,7 +90,14 @@
 
   function renderMenu() {
     el.root.innerHTML = '';
-    categories.forEach(cat => {
+    const query = menuSearch.toLowerCase().trim();
+    const visibleCategories = categories.map(cat => ({
+      ...cat,
+      items: cat.items.filter(item => !query || `${item.name} ${item.description || ''}`.toLowerCase().includes(query)),
+    })).filter(cat => (activeCategory === 'All' || cat.name === activeCategory) && cat.items.length);
+
+    renderCategoryTabs();
+    visibleCategories.forEach(cat => {
       const badge = document.createElement('div');
       badge.className = 'section-badge';
       badge.style.setProperty('--section-image', `url("${categoryImages[cat.name.toLowerCase()] || fallbackImage}")`);
@@ -108,9 +114,18 @@
       el.root.appendChild(grid);
     });
 
-    if (categories.length === 0) {
-      el.root.innerHTML = `<div class="empty-state">No menu items yet. Check back soon.</div>`;
+    if (visibleCategories.length === 0) {
+      el.root.innerHTML = `<div class="empty-state">${query || activeCategory !== 'All' ? 'No matching items. Try another search or category.' : 'No menu items yet. Check back soon.'}</div>`;
     }
+  }
+
+  function renderCategoryTabs() {
+    const names = ['All', ...categories.map(category => category.name)];
+    el.categoryTabs.innerHTML = names.map(name => `<button type="button" role="tab" aria-selected="${name === activeCategory}" class="category-tab${name === activeCategory ? ' is-active' : ''}" data-category="${name}">${name}</button>`).join('');
+    el.categoryTabs.querySelectorAll('[data-category]').forEach(button => button.addEventListener('click', () => {
+      activeCategory = button.dataset.category;
+      renderMenu();
+    }));
   }
 
   function renderMenuCard(item) {
@@ -235,6 +250,19 @@
   el.checkoutClose.addEventListener('click', closeCheckout);
   el.checkoutBackdrop.addEventListener('click', closeCheckout);
 
+  el.menuSearch.addEventListener('input', () => {
+    menuSearch = el.menuSearch.value;
+    el.clearMenuSearch.classList.toggle('is-visible', Boolean(menuSearch));
+    renderMenu();
+  });
+  el.clearMenuSearch.addEventListener('click', () => {
+    el.menuSearch.value = '';
+    menuSearch = '';
+    el.clearMenuSearch.classList.remove('is-visible');
+    el.menuSearch.focus();
+    renderMenu();
+  });
+
   document.querySelectorAll('.channel-toggle button').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.channel-toggle button').forEach(b => b.classList.remove('is-active'));
@@ -257,7 +285,7 @@
     if (cart.size === 0) { el.checkoutError.textContent = 'Add at least one item to your order.'; return; }
     if (!name) { el.checkoutError.textContent = 'Please enter your name.'; return; }
     if (!phone) { el.checkoutError.textContent = 'Please enter your phone number.'; return; }
-    if (!email || !email.includes('@')) { el.checkoutError.textContent = 'Please enter a valid email address.'; return; }
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { el.checkoutError.textContent = 'Please enter a valid email address (e.g. name@example.com).'; return; }
     if (channel === 'Delivery' && !address) { el.checkoutError.textContent = 'Please enter a delivery address.'; return; }
 
     const payload = {
@@ -274,7 +302,7 @@
     };
 
     el.submitOrder.disabled = true;
-    el.submitOrder.textContent = 'Placing order…';
+    el.submitOrder.innerHTML = '<span class="brand-spinner"></span>Placing order…';
 
     try {
       const order = await Api.post('/api/orders', payload);
@@ -343,51 +371,25 @@
       if (!number || number.length < 12) { el.paymentError.textContent = 'Enter a valid card number.'; return; }
       if (!name) { el.paymentError.textContent = 'Enter the name on the card.'; return; }
       if (!month || month < 1 || month > 12) { el.paymentError.textContent = 'Enter a valid expiry month.'; return; }
-      if (!year || String(year).length !== 4) { el.paymentError.textContent = 'Enter a valid expiry year.'; return; }
+      if (!year || String(year).length !== 4) { el.paymentError.textContent = 'Enter a valid expiry year (e.g. 2027).'; return; }
       if (!cvv || cvv.length < 3) { el.paymentError.textContent = 'Enter a valid CVV.'; return; }
       Object.assign(payload, { cardNumber: number, cardHolderName: name, expiryMonth: month, expiryYear: year, cvv });
     }
     el.submitPayment.disabled = true;
+    el.submitPayment.innerHTML = '<span class="brand-spinner"></span>Processing…';
     try {
       const result = await Api.post('/api/payments/charge', payload);
       if (!result.success) { el.paymentError.textContent = result.message || 'Payment failed. Please try again.'; return; }
       currentOrder = result.order;
       closePaymentSheet();
-      openConfirmSheet(currentOrder);
+      openTracker(currentOrder);
     } catch (err) {
       el.paymentError.textContent = err.message || 'Payment failed. Please try again.';
     } finally {
       el.submitPayment.disabled = false;
+      el.submitPayment.innerHTML = `Pay now — <span id="payment-total">${currentOrder ? money(currentOrder.totalAmount) : 'R0.00'}</span>`;
     }
   });
-
-  el.submitToKitchen.addEventListener('click', async () => {
-    if (!currentOrder) return;
-    el.confirmError.textContent = '';
-    el.submitToKitchen.disabled = true;
-    try {
-      const order = await Api.post(`/api/orders/${currentOrder.id}/submit`, null);
-      closeConfirmSheet();
-      openTracker(order);
-    } catch (err) {
-      el.confirmError.textContent = err.message || 'Could not submit the order to the kitchen.';
-    } finally {
-      el.submitToKitchen.disabled = false;
-    }
-  });
-
-  function openConfirmSheet(order) {
-    el.confirmError.textContent = '';
-    el.confirmOrderNumber.textContent = order.orderNumber;
-    el.confirmItems.innerHTML = `<div class="price-line total"><span>Total paid</span><span>${money(order.totalAmount)}</span></div>`;
-    el.confirmBackdrop.classList.add('is-open');
-    el.confirmSheet.style.display = 'block';
-  }
-
-  function closeConfirmSheet() {
-    el.confirmBackdrop.classList.remove('is-open');
-    el.confirmSheet.style.display = 'none';
-  }
 
   // ---- Order tracking ---------------------------------------------------
 

@@ -13,11 +13,13 @@ public class PaymentsController : ControllerBase
 {
     private readonly AppDbContext _db;
     private readonly IPaymentGateway _gateway;
+    private readonly OrderNotifier _notifier;
 
-    public PaymentsController(AppDbContext db, IPaymentGateway gateway)
+    public PaymentsController(AppDbContext db, IPaymentGateway gateway, OrderNotifier notifier)
     {
         _db = db;
         _gateway = gateway;
+        _notifier = notifier;
     }
 
     [HttpPost("charge")]
@@ -75,6 +77,7 @@ public class PaymentsController : ControllerBase
             CreatedAt = DateTime.UtcNow
         };
         _db.Payments.Add(payment);
+        order.Payment = payment;
 
         if (!result.Success)
         {
@@ -88,17 +91,20 @@ public class PaymentsController : ControllerBase
                 OrdersController.ToResponse(order, order.Customer!)));
         }
 
-        order.Status = OrderStatus.PaymentConfirmed;
+        order.Status = OrderStatus.Pending;
         order.UpdatedAt = DateTime.UtcNow;
         LoyaltyService.RegisterPaidOrder(order.Customer!, order.UsedLoyaltyReward);
         await _db.SaveChangesAsync();
 
+        var response = OrdersController.ToResponse(order, order.Customer!);
+        await _notifier.NotifyNewOrderAsync(response);
+
         return Ok(new PaymentResponse(
             true,
-            "Payment successful. Please submit your order to the kitchen.",
+            "Payment successful. Your order has been sent to the kitchen.",
             result.GatewayReference,
             brand,
             last4,
-            OrdersController.ToResponse(order, order.Customer!)));
+            response));
     }
 }
